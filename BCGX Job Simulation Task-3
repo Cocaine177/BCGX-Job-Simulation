@@ -1,0 +1,60 @@
+# 📦 Step 1: Import Required Libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# ✅ Step 2: Load the dataset
+df = pd.read_csv("data_for_predictions.csv")
+
+# ✅ Step 3: Drop unnecessary or non-numeric columns
+if 'id' in df.columns:
+    df.drop('id', axis=1, inplace=True)
+if 'Unnamed: 0' in df.columns:
+    df.drop('Unnamed: 0', axis=1, inplace=True)
+
+# ✅ Step 4: Check for non-numeric columns (like strings/categorical)
+non_numeric_cols = df.select_dtypes(include=['object']).columns.tolist()
+print("Non-numeric columns:", non_numeric_cols)
+
+# If there are any, either drop or encode them.
+# For simplicity, we'll drop them (you can also use pd.get_dummies if needed)
+df.drop(columns=non_numeric_cols, inplace=True)
+
+# ✅ Step 5: Check for missing values
+df.dropna(inplace=True)
+
+# ✅ Step 6: Separate features and target
+X = df.drop("churn", axis=1)
+y = df["churn"]
+
+# ✅ Step 7: Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ✅ Step 8: Train Random Forest Classifier
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# ✅ Step 9: Make predictions
+y_pred = model.predict(X_test)
+
+# ✅ Step 10: Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+report = classification_report(y_test, y_pred)
+
+print("\n✅ Accuracy of model:", round(accuracy * 100, 2), "%")
+print("\n📊 Confusion Matrix:\n", conf_matrix)
+print("\n📄 Classification Report:\n", report)
+
+# ✅ Step 11: Optional – Plot confusion matrix
+plt.figure(figsize=(6, 4))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap="Blues", xticklabels=[0, 1], yticklabels=[0, 1])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix Heatmap")
+plt.show()
